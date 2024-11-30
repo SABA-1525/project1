@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Color Corner Wall Preview</title>
+
+  <!-- Importing Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&family=Montez&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      flex-direction: column;
+      text-align: center;
+      color: #333;
+    }
+
+    h1 {
+      font-family: 'Montez', cursive;
+      font-size: 3rem;
+      color: #4CAF50;
+      text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.3);
+      margin-bottom: 20px;
+    }
+
+    .instructions {
+      font-size: 18px;
+      color: #555;
+      margin: 20px 0;
+      font-weight: 500;
+      text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .color-selector {
+      margin: 20px 0;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .color-button {
+      padding: 15px;
+      margin: 10px;
+      border: none;
+      cursor: pointer;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+      transform: scale(1);
+    }
+
+    .color-button:hover {
+      opacity: 0.8;
+      transform: scale(1.1);
+    }
+
+    .wall-container {
+      display: flex;
+      justify-content: center;
+      margin-top: 30px;
+    }
+
+    .wall {
+      width: 250px;
+      height: 300px;
+      border-radius: 10px;
+      margin: 0 10px;
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+      position: relative;
+    }
+
+    .wall-corner {
+      position: relative;
+      width: 500px;
+      height: 300px;
+      display: flex;
+      justify-content: space-between;
+      transform: rotateY(0deg);
+    }
+
+    .wall-corner .wall {
+      transform-origin: left;
+      transition: all 0.3s ease;
+    }
+
+    .lighting-mode {
+      margin-top: 20px;
+    }
+
+    .lighting-mode select {
+      padding: 10px;
+      border-radius: 5px;
+      border: 2px solid #4CAF50;
+      background-color: #fff;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .lighting-mode select:hover {
+      border-color: #ff1493;
+    }
+
+    /* Lighting modes */
+    .daylight {
+      filter: brightness(1);
+      box-shadow: 0 10px 15px rgba(255, 255, 255, 0.3);
+    }
+
+    .nightlight {
+      filter: brightness(0.6);
+      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.6);
+    }
+
+    /* Glowing buttons */
+    .color-button:active {
+      box-shadow: 0 0 15px 3px rgba(255, 255, 255, 0.8);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Color Corner Wall Preview</h1>
+    <p class="instructions">Choose a color for each wall in the corner to see how they look. You can change the lighting mode to simulate different light conditions.</p>
+
+    <!-- Color Selector for Front Wall -->
+    <div class="color-selector">
+      <button class="color-button" style="background-color: #ff6347;" onclick="changeFrontWallColor('#ff6347')">Tomato</button>
+      <button class="color-button" style="background-color: #ff1493;" onclick="changeFrontWallColor('#ff1493')">Deep Pink</button>
+      <button class="color-button" style="background-color: #1e90ff;" onclick="changeFrontWallColor('#1e90ff')">Dodger Blue</button>
+      <button class="color-button" style="background-color: #32cd32;" onclick="changeFrontWallColor('#32cd32')">Lime Green</button>
+      <button class="color-button" style="background-color: #8a2be2;" onclick="changeFrontWallColor('#8a2be2')">Blue Violet</button>
+    </div>
+
+    <!-- Color Selector for Side Wall -->
+    <div class="color-selector">
+      <button class="color-button" style="background-color: #ffeb3b;" onclick="changeSideWallColor('#ffeb3b')">Yellow</button>
+      <button class="color-button" style="background-color: #f44336;" onclick="changeSideWallColor('#f44336')">Red</button>
+      <button class="color-button" style="background-color: #3f51b5;" onclick="changeSideWallColor('#3f51b5')">Indigo</button>
+      <button class="color-button" style="background-color: #4caf50;" onclick="changeSideWallColor('#4caf50')">Green</button>
+      <button class="color-button" style="background-color: #ff9800;" onclick="changeSideWallColor('#ff9800')">Orange</button>
+    </div>
+
+    <!-- Wall Display Section (Two-Wall Corner) -->
+    <div class="wall-corner" id="cornerWall">
+      <div class="wall front-wall daylight" id="frontWall"></div>
+      <div class="wall side-wall daylight" id="sideWall"></div>
+    </div>
+
+    <!-- Wall Lighting Mode Options -->
+    <div class="lighting-mode">
+      <label for="lightingMode">Choose Lighting Mode: </label>
+      <select id="lightingMode" onchange="changeLightingMode()">
+        <option value="daylight">Daylight</option>
+        <option value="nightlight">Nightlight</option>
+      </select>
+    </div>
+  </div>
+
+  <script>
+    // Function to change the color of the front wall
+    function changeFrontWallColor(color) {
+      const frontWall = document.getElementById('frontWall');
+      frontWall.style.backgroundColor = color;
+    }
+
+    // Function to change the color of the side wall
+    function changeSideWallColor(color) {
+      const sideWall = document.getElementById('sideWall');
+      sideWall.style.backgroundColor = color;
+    }
+
+    // Function to change lighting mode (Daylight or Nightlight)
+    function changeLightingMode() {
+      const mode = document.getElementById('lightingMode').value;
+      const frontWall = document.getElementById('frontWall');
+      const sideWall = document.getElementById('sideWall');
+
+      if (mode === "nightlight") {
+        frontWall.classList.remove('daylight');
+        frontWall.classList.add('nightlight');
+        
+        sideWall.classList.remove('daylight');
+        sideWall.classList.add('nightlight');
+      } else {
+        frontWall.classList.remove('nightlight');
+        frontWall.classList.add('daylight');
+        
+        sideWall.classList.remove('nightlight');
+        sideWall.classList.add('daylight');
+      }
+    }
+  </script>
+
+</body>
+</html>

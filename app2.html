@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Attendance Application</title>
+    <style>
+        /* General Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #00bcd4, #009688);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        h1, h2 {
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+        .scanner, .video-section {
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+        }
+        video, canvas {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        button {
+            background-color: #ff5722;
+            color: #fff;
+            font-size: 1rem;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #e64a19;
+        }
+        .output {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <h1>Smart Attendance Application</h1>
+
+    <!-- QR Scanner -->
+    <div class="scanner">
+        <h2>QR Code Scanner</h2>
+        <video id="qr-video" autoplay></video>
+        <canvas id="qr-canvas" hidden></canvas>
+        <div class="output" id="qr-output">Scanning for QR code...</div>
+    </div>
+
+    <!-- Face Recognition Section -->
+    <div class="video-section">
+        <h2>Face Recognition</h2>
+        <video id="face-video" autoplay></video>
+        <canvas id="face-canvas"></canvas>
+        <button id="capture">Capture Face</button>
+        <div class="output" id="face-output">Waiting for face capture...</div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.7.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/face-landmarks-detection"></script>
+    <script>
+        // QR Code Scanner Logic
+        const qrVideo = document.getElementById('qr-video');
+        const qrCanvas = document.getElementById('qr-canvas');
+        const qrOutput = document.getElementById('qr-output');
+        const qrCtx = qrCanvas.getContext('2d');
+
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+            .then((stream) => {
+                qrVideo.srcObject = stream;
+            })
+            .catch((err) => console.error("Camera access denied:", err));
+
+        function scanQRCode() {
+            qrCtx.drawImage(qrVideo, 0, 0, qrCanvas.width, qrCanvas.height);
+            const imageData = qrCtx.getImageData(0, 0, qrCanvas.width, qrCanvas.height);
+            const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+            if (code) {
+                qrOutput.textContent = `Scanned QR Code: ${code.data}`;
+                qrOutput.style.background = "rgba(0, 255, 0, 0.2)";
+            } else {
+                qrOutput.textContent = "No QR code detected.";
+                qrOutput.style.background = "rgba(255, 0, 0, 0.2)";
+            }
+
+            requestAnimationFrame(scanQRCode);
+        }
+
+        qrVideo.addEventListener('play', scanQRCode);
+
+        // Face Recognition Logic
+        const faceVideo = document.getElementById('face-video');
+        const faceCanvas = document.getElementById('face-canvas');
+        const faceOutput = document.getElementById('face-output');
+        const captureBtn = document.getElementById('capture');
+        let faceDetector;
+
+        async function loadFaceModel() {
+            faceDetector = await faceLandmarksDetection.load(
+                faceLandmarksDetection.SupportedPackages.mediapipeFacemesh
+            );
+            console.log("Face model loaded");
+        }
+
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then((stream) => {
+                faceVideo.srcObject = stream;
+            })
+            .catch((err) => console.error("Camera access denied:", err));
+
+        async function detectFaces() {
+            if (faceDetector) {
+                const predictions = await faceDetector.estimateFaces({ input: faceVideo });
+                const ctx = faceCanvas.getContext('2d');
+                ctx.clearRect(0, 0, faceCanvas.width, faceCanvas.height);
+                ctx.drawImage(faceVideo, 0, 0, faceCanvas.width, faceCanvas.height);
+
+                if (predictions.length > 0) {
+                    predictions.forEach((prediction) => {
+                        const keypoints = prediction.keypoints;
+
+                        ctx.fillStyle = "red";
+                        keypoints.forEach((keypoint) => {
+                            const [x, y] = keypoint;
+                            ctx.beginPath();
+                            ctx.arc(x, y, 2, 0, 2 * Math.PI);
+                            ctx.fill();
+                        });
+                    });
+
+                    faceOutput.textContent = "Face detected!";
+                    faceOutput.style.background = "rgba(0, 255, 0, 0.2)";
+                } else {
+                    faceOutput.textContent = "No face detected.";
+                    faceOutput.style.background = "rgba(255, 0, 0, 0.2)";
+                }
+            }
+
+            requestAnimationFrame(detectFaces);
+        }
+
+        captureBtn.addEventListener('click', () => {
+            detectFaces();
+        });
+
+        loadFaceModel();
+    </script>
+</body>
+</html>

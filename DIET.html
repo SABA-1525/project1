@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprehensive Diet Helper</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f8fa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: #333;
+        }
+        h1 { color: #27ae60; margin-bottom: 5px; }
+        p { margin: 5px 0; color: #555; }
+
+        /* Search and Filters */
+        .search-container, .filters, .favorite-section {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            justify-content: center;
+        }
+        .search-bar, .calorie-input {
+            padding: 8px;
+            width: 200px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .filter-btn, .reset-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            background-color: #27ae60;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .filter-btn:hover, .reset-btn:hover { background-color: #1f8e4d; }
+        .progress-bar { width: 100%; max-width: 400px; height: 15px; background-color: #e0e0e0; border-radius: 8px; overflow: hidden; margin-top: 8px; }
+        .progress { height: 100%; background-color: #27ae60; width: 0%; transition: width 0.3s; }
+
+        /* Food Container */
+        .food-container { display: flex; flex-wrap: wrap; justify-content: center; max-width: 1000px; }
+        .food-category { width: 200px; padding: 15px; margin: 10px; background: #fff; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-left: 6px solid #27ae60; transition: transform 0.3s; position: relative; }
+        .food-category.hidden { display: none; }
+        .food-category:hover { transform: translateY(-5px); }
+        .food-item { display: flex; justify-content: space-between; margin: 8px 0; cursor: pointer; position: relative; }
+        .food-item:hover .tooltip { display: block; }
+        .tooltip { display: none; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background-color: #333; color: #fff; padding: 5px; border-radius: 4px; font-size: 12px; white-space: nowrap; }
+        .badge { padding: 3px 6px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .badge.eat { background-color: #27ae60; color: white; }
+        .badge.avoid { background-color: #e74c3c; color: white; }
+        .favorite-section { flex-direction: column; max-width: 400px; border: 1px solid #ddd; padding: 10px; border-radius: 8px; background: #fff; }
+    </style>
+</head>
+<body>
+    <h1>Comprehensive Diet Helper</h1>
+    <p>Track your calories and discover suitable foods for your diet plan.</p>
+
+    <!-- Search Bar -->
+    <div class="search-container">
+        <input type="text" class="search-bar" placeholder="Search food..." oninput="searchFood()">
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+        <button class="filter-btn" onclick="filterCategory('Fruits')">Fruits</button>
+        <button class="filter-btn" onclick="filterCategory('Vegetables')">Vegetables</button>
+        <button class="filter-btn" onclick="filterCategory('Proteins')">Proteins</button>
+        <button class="filter-btn" onclick="filterCategory('Grains')">Grains</button>
+        <button class="reset-btn" onclick="resetFilters()">Clear Filters</button>
+    </div>
+
+    <!-- Calorie Counter -->
+    <div class="calorie-counter">
+        <label for="calories">Daily Calorie Goal: </label>
+        <input type="number" id="calories" class="calorie-input" placeholder="e.g., 2000" oninput="updateProgress()">
+        <div class="progress-bar">
+            <div class="progress" id="progress-bar"></div>
+        </div>
+        <p id="calorie-progress-text">0 / Goal Calories</p>
+    </div>
+
+    <!-- Food Container -->
+    <div class="food-container" id="food-container">
+        <!-- Example Categories -->
+        <div class="food-category" data-category="Fruits">
+            <h2>Fruits</h2>
+            <div class="food-item" onclick="toggleFood('Apple', 95)">
+                <span>Apple (1 medium)</span>
+                <span>95 cal <span class="badge eat">Eat</span></span>
+                <span class="tooltip">Rich in fiber and vitamins</span>
+            </div>
+            <div class="food-item" onclick="toggleFood('Banana', 105)">
+                <span>Banana (1 medium)</span>
+                <span>105 cal <span class="badge eat">Eat</span></span>
+                <span class="tooltip">Good source of potassium</span>
+            </div>
+        </div>
+
+        <div class="food-category" data-category="Vegetables">
+            <h2>Vegetables</h2>
+            <div class="food-item" onclick="toggleFood('Broccoli', 55)">
+                <span>Broccoli (1 cup)</span>
+                <span>55 cal <span class="badge eat">Eat</span></span>
+                <span class="tooltip">High in fiber, low in calories</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Favorite Foods Section -->
+    <div class="favorite-section">
+        <h3>Favorite Foods</h3>
+        <ul id="favorite-list"></ul>
+    </div>
+
+    <script>
+        let calorieGoal = 0;
+        let currentCalories = 0;
+        let favoriteFoods = [];
+
+        function updateProgress() {
+            calorieGoal = parseInt(document.getElementById("calories").value) || 0;
+            let progress = (currentCalories / calorieGoal) * 100;
+            document.getElementById("progress-bar").style.width = progress + "%";
+            document.getElementById("calorie-progress-text").innerText = `${currentCalories} / ${calorieGoal} Calories`;
+        }
+
+        function toggleFood(foodName, calories) {
+            currentCalories += calories;
+            updateProgress();
+            if (!favoriteFoods.includes(foodName)) {
+                favoriteFoods.push(foodName);
+                const favoriteList = document.getElementById("favorite-list");
+                const li = document.createElement("li");
+                li.innerText = foodName;
+                favoriteList.appendChild(li);
+            }
+        }
+
+        function filterCategory(category) {
+            document.querySelectorAll(".food-category").forEach((el) => {
+                el.classList.toggle("hidden", el.dataset.category !== category);
+            });
+        }
+
+        function resetFilters() {
+            document.querySelectorAll(".food-category").forEach((el) => el.classList.remove("hidden"));
+        }
+
+        function searchFood() {
+            const searchValue = document.querySelector(".search-bar").value.toLowerCase();
+            document.querySelectorAll(".food-item").forEach((item) => {
+                const itemName = item.innerText.toLowerCase();
+                item.style.display = itemName.includes(searchValue) ? "flex" : "none";
+            });
+        }
+    </script>
+</body>
+</html>

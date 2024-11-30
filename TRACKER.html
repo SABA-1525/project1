@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daily Habit Tracker</title>
+
+  <!-- Inline CSS for styling -->
+  <style>
+    /* Background and Font Styles */
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: linear-gradient(to right, #f7b7a3, #ffdfba, #ffd9e8);
+      color: #333;
+      margin: 0;
+      padding: 20px;
+      min-height: 100vh;
+      justify-content: center;
+    }
+
+    h1 {
+      margin: 10px 0;
+      color: #4a4e69;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Input Styles for Habit Title */
+    #habit-title {
+      margin: 10px 0;
+      padding: 8px 12px;
+      font-size: 16px;
+      border: 2px solid #76c7c0;
+      border-radius: 5px;
+      text-align: center;
+      width: 80%;
+    }
+
+    /* Progress Bar Styles */
+    .progress-container {
+      width: 80%;
+      background-color: #ddd;
+      height: 20px;
+      border-radius: 10px;
+      margin: 10px auto;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background-color: #76c7c0;
+      border-radius: 10px;
+      transition: width 0.3s;
+    }
+
+    /* Habit Tracker Grid */
+    .habit-tracker {
+      display: grid;
+      grid-template-columns: repeat(7, 60px);
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    /* Day Styling */
+    .day {
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #d4a5a5, #f2f2f2);
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      color: #333;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      transition: background-color 0.3s, color 0.3s, transform 0.2s;
+    }
+
+    .day.checked {
+      background: linear-gradient(135deg, #76c7c0, #8ddad5);
+      color: white;
+      transform: scale(1.05);
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .day:hover {
+      transform: scale(1.1);
+      background: linear-gradient(135deg, #f0e68c, #f0d68a);
+    }
+
+    /* Reset Button Styles */
+    #reset-button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      background-color: #ff686b;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    #reset-button:hover {
+      background-color: #ff4c4f;
+    }
+  </style>
+</head>
+
+<body>
+  <h1 id="display-title">Habit Tracker</h1>
+  
+  <!-- Habit Title Input -->
+  <input type="text" id="habit-title" placeholder="Enter your habit" />
+
+  <!-- Progress Bar Container -->
+  <div class="progress-container">
+    <div class="progress-bar" id="progress-bar"></div>
+  </div>
+
+  <!-- Habit Tracker Grid -->
+  <div class="habit-tracker">
+    <!-- 31 days for a full month -->
+    <div class="day">1</div>
+    <div class="day">2</div>
+    <div class="day">3</div>
+    <div class="day">4</div>
+    <div class="day">5</div>
+    <div class="day">6</div>
+    <div class="day">7</div>
+    <div class="day">8</div>
+    <div class="day">9</div>
+    <div class="day">10</div>
+    <div class="day">11</div>
+    <div class="day">12</div>
+    <div class="day">13</div>
+    <div class="day">14</div>
+    <div class="day">15</div>
+    <div class="day">16</div>
+    <div class="day">17</div>
+    <div class="day">18</div>
+    <div class="day">19</div>
+    <div class="day">20</div>
+    <div class="day">21</div>
+    <div class="day">22</div>
+    <div class="day">23</div>
+    <div class="day">24</div>
+    <div class="day">25</div>
+    <div class="day">26</div>
+    <div class="day">27</div>
+    <div class="day">28</div>
+    <div class="day">29</div>
+    <div class="day">30</div>
+    <div class="day">31</div>
+  </div>
+
+  <!-- Reset Button -->
+  <button id="reset-button">Reset Tracker</button>
+
+  <!-- Inline JavaScript for functionality -->
+  <script>
+    const days = document.querySelectorAll('.day');
+    const progressBar = document.getElementById('progress-bar');
+    const habitTitle = document.getElementById('habit-title');
+    const displayTitle = document.getElementById('display-title');
+    const resetButton = document.getElementById('reset-button');
+
+    // Update the progress bar based on completed days
+    function updateProgress() {
+      const checkedDays = document.querySelectorAll('.day.checked').length;
+      const totalDays = document.querySelectorAll('.day').length;
+      const progress = (checkedDays / totalDays) * 100;
+      progressBar.style.width = `${progress}%`;
+    }
+
+    // Add event listeners to each day for toggling completion and updating progress
+    days.forEach(day => {
+      day.addEventListener('click', () => {
+        day.classList.toggle('checked');
+        updateProgress();
+      });
+    });
+
+    // Update habit title in header as user types in the input field
+    habitTitle.addEventListener('input', () => {
+      displayTitle.textContent = habitTitle.value ? habitTitle.value : "Habit Tracker";
+    });
+
+    // Reset button functionality to clear all checked days and reset progress
+    resetButton.addEventListener('click', () => {
+      days.forEach(day => day.classList.remove('checked'));
+      updateProgress();
+    });
+
+    // Initialize progress bar
+    updateProgress();
+  </script>
+</body>
+</html>
